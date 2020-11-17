@@ -1,0 +1,82 @@
+#+TITLE: MNIST Training with Multi-Party Computation
+
+Small set of scripts for training MNIST networks with dense (fully
+connected) layers using [[https://github.com/data61/MP-SPDZ/][MP-SPDZ]]. This is the basis of the benchmarks in
+<https://eprint.iacr.org/2020/1330>.
+
+** Installation (with Docker)
+
+Run the following  from this directory to build a Docker container:
+
+: $ docker build .
+
+At the of the installation, the examples below are run automatically.
+
+** Running locally
+
+After setting everything up, you can use this script to run the
+computation:
+
+: $ ./run-local.sh  <protocol> <n_layers> <round> <back_prop> <n_threads> <n_epochs> [no_loss]
+
+The options are as follows:
+
+- =protocol= is one of =emul= (emulation), =sh3= (semi-honest
+  three-party computation, =mal3= (malicious three-party computation),
+  =mal4= (malicious four-party computation). All protocols are assuming an
+  honest majority.
+- =n_layers= is the number of dense layers (1-3).
+- =round= is the kind of rounding, =prob= for probabilistic and =near= for
+  nearest.
+- =back_prop= is the back-propagation for the output layer, one of =softmax=,
+  =relu_grad= (ReLU-based gradient), =relu_prob= (ReLU-based probability).
+- =n_threads= is the number of threads per party.
+- =n_epochs= is the number of epochs.
+
+For example,
+
+: $ ./run-local.sh emul 2 prob softmax 2 20
+
+runs 20 epochs of training two dense layers in the emulation with two threads,
+probabilistic rounding, and softmax output function.
+
+** Running remotely
+
+You need to set up hosts that run SSH and have all higher TCP ports
+open between each other. We have used =c5.9xlarge= instances in the
+same AWS zone and hence 36 threads. The hosts have to run Linux with a
+glib not older than Ubuntu 18.04 (2.27), which is the case for Amazon
+Linux 2. Honest-majority protocols require three hosts while
+dishonest-majority protocols require two.
+
+With Docker, you can run the following script to set up host names,
+user name and SSH RSA key. We do *NOT* recommend running it outside
+Docker because it might overwrite an existing RSA key file.
+
+: $ ./setup-remote.sh
+
+Without Docker, familiarise yourself with SSH configuration options
+and SSH keys. You can use =ssh_config= and the above script to find
+out the requirements. =HOSTS= has to contain the hostnames separated
+by whitespace.
+
+After setting up, you can the following using the same options as
+above:
+
+: $ ./run-remote.sh  <protocol> <n_layers> <round> <back_prop> <n_threads> <n_epochs> [no_loss]
+
+For example,
+
+: $ ./run-remote.sh sh3 1 near relu_prob 1 1
+
+runs one epoch of training one dense layers with semi-honest three-party
+computation, one thread, nearest rounding, and ReLU-based probability
+distribution.
+
+** Cleartext training
+
+=train.py= allows to run the equivalent cleartext training with Tensorflow
+(using floating-point instead of fixed-point representation).
+Simply run the following:
+
+: $ ./train.py <number of dense layers>

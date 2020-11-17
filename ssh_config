@@ -1,0 +1,6 @@
+Host *
+
+# change to remote username
+User root
+
+StrictHostKeyChecking no
