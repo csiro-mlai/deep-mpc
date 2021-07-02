@@ -10,11 +10,11 @@ RUN apt-get update && apt-get -y install wget tar openssl git make cmake \
 
 WORKDIR /root
 
-RUN git clone https://github.com/data61/MP-SPDZ
-RUN cd MP-SPDZ; git checkout 15d179a1d11038a9106dc4a7b886445f5105139b
-
 ADD download.sh .
 RUN ./download.sh
+
+RUN git clone https://github.com/data61/MP-SPDZ
+RUN cd MP-SPDZ; git checkout 99c0549e7205f4a4550cff836abc417227193fa0
 
 ADD build-mp-spdz.sh .
 RUN ./build-mp-spdz.sh
@@ -27,7 +27,5 @@ ADD convert.sh *.py ./
 RUN ./convert.sh
 
 ADD *.sh *.py HOSTS ./
-RUN ./run-local.sh emul 2 prob softmax 2 20
-RUN service ssh start; ./run-remote.sh sh3 1 near relu_prob 1 1
-#RUN service ssh start; ./run-remote.sh mal3 1 near relu_prob 1 1
-#RUN service ssh start; ./run-remote.sh mal4 1 prob relu_grad 1 1
+RUN ./run-local.sh emul D prob 2 3 32 adamapprox
+RUN service ssh start; ./run-remote.sh sh3 A near 1 1 16 rate.1

@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 # -*- coding: utf-8 -*-
 """tensorflow/datasets
 
@@ -28,6 +30,7 @@ Copyright 2020 The TensorFlow Datasets Authors, Licensed under the Apache Licens
 import tensorflow.compat.v2 as tf
 import tensorflow_datasets as tfds
 import sys
+import re
 
 tfds.disable_progress_bar()
 tf.enable_v2_behavior()
@@ -46,8 +49,10 @@ Load with the following arguments:
 * `as_supervised`: Returns tuple `(img, label)` instead of dict `{'image': img, 'label': label}`
 """
 
+dataset = 'fashion_mnist' if 'fashion' in sys.argv else 'mnist'
+
 (ds_train, ds_test), ds_info = tfds.load(
-    'mnist',
+    dataset,
     split=['train', 'test'],
     shuffle_files=True,
     as_supervised=True,
@@ -97,34 +102,95 @@ ds_test = ds_test.prefetch(tf.data.experimental.AUTOTUNE)
 Plug the input pipeline into Keras.
 """
 
-layers = [
-  tf.keras.layers.Flatten(input_shape=(28, 28, 1)),
-  tf.keras.layers.Dense(10, activation='softmax')
-]
+network = 'A'
+n_epochs = 10
+lr = 0.1
+adam = False
+amsgrad = False
 
-for i in range(int(sys.argv[1]) - 1):
-  layers.insert(1, tf.keras.layers.Dense(128, activation='relu'))
+if len(sys.argv) > 1:
+  network = sys.argv[1]
+if len(sys.argv) > 2:
+  n_epochs = int(sys.argv[2])
+if len(sys.argv) > 3:
+  adam = re.match('adam(.*)', sys.argv[3])
+  amsgrad = re.match('amsgrad(.*)', sys.argv[3])
+  if adam or amsgrad:
+    try:
+      lr = float((adam or amsgrad).group(1))
+    except:
+      lr = .001
+    if adam:
+      print('use Adam with lr', lr)
+    else:
+      print('use AMSGrad with lr', lr)
+  else:
+    lr = float(sys.argv[3])
 
+if network == 'A':
+  layers = [
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(128,activation='relu'),
+    tf.keras.layers.Dense(128,activation='relu'),
+    tf.keras.layers.Dense(10, activation='softmax')
+  ]
+elif network == 'D':
+  layers = [
+    tf.keras.layers.Conv2D(5, 5, 2, 'same', activation='relu'),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(100, activation='relu'),
+    tf.keras.layers.Dense(10, activation='softmax')
+  ]
+  model = tf.keras.models.Sequential(layers)
+elif network == 'B':
+  layers = [
+    tf.keras.layers.Conv2D(16, 5, 1, 'valid', activation='relu'),
+    tf.keras.layers.MaxPooling2D(2),
+    tf.keras.layers.Conv2D(16, 5, 1, 'valid', activation='relu'),
+    tf.keras.layers.MaxPooling2D(2),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(100, activation='relu'),
+    tf.keras.layers.Dense(10, activation='softmax')
+  ]
+elif network == 'C':
+  layers = [
+    tf.keras.layers.Conv2D(20, 5, 1, 'valid', activation='relu'),
+    tf.keras.layers.MaxPooling2D(2),
+    tf.keras.layers.Conv2D(50, 5, 1, 'valid', activation='relu'),
+    tf.keras.layers.MaxPooling2D(2),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(500, activation='relu'),
+    tf.keras.layers.Dense(10, activation='softmax')
+  ]
+  if 'dropout' in sys.argv:
+    layers.insert(-2, tf.keras.layers.Dropout(0.5))
+else:
+  raise Exception('unknown network: ' + network)
+
+print (layers)
 model = tf.keras.models.Sequential(layers)
 
+if adam or amsgrad:
+  optim = tf.keras.optimizers.Adam(lr, amsgrad=amsgrad)
+else:
+  optim = tf.keras.optimizers.SGD(momentum=0.9, learning_rate=lr,)
+
 model.compile(
-    loss='sparse_categorical_crossentropy',
-    optimizer=tf.keras.optimizers.SGD(momentum=0.9, learning_rate=0.01),
-    metrics=['accuracy'],
+  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+  metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
+  optimizer=optim
 )
 
-out = open('model', 'w')
-
 for i in range(1):
-
-  model.fit(
+  history = model.fit(
     ds_train,
-    epochs=20,
+    epochs=n_epochs,
     validation_data=ds_test,
   )
 
-  # for x in model.trainable_variables:
-  #   print(x.numpy().shape)
-  #   for y in x.numpy().flatten('A'):
-  #     out.write('%s ' % y)
-  #   out.write('\n')
+  out = open('log-' + '-'.join(sys.argv[1:]), 'w')
+  for i in range(n_epochs):
+    out.write(str(i) + ' ')
+    for x in history.history:
+      out.write('%s: %.4f ' % (x, history.history[x][i]))
+    out.write('\n')

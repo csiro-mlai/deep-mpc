@@ -1,8 +1,11 @@
 #+TITLE: MNIST Training with Multi-Party Computation
 
-Small set of scripts for training MNIST networks with dense (fully
-connected) layers using [[https://github.com/data61/MP-SPDZ/][MP-SPDZ]]. This is the basis of the benchmarks in
-<https://eprint.iacr.org/2020/1330>.
+Small set of scripts for training MNIST networks with a number of
+networks using [[https://github.com/data61/MP-SPDZ/][MP-SPDZ]].
+This version underlies the figures in
+<https://arxiv.org/abs/2107.00501>. For the version underlying
+<https://eprint.iacr.org/2020/1330> and
+<https://arxiv.org/abs/2011.11202>, see the =v1= branch.
 
 ** Installation (with Docker)
 
@@ -17,7 +20,7 @@ At the of the installation, the examples below are run automatically.
 After setting everything up, you can use this script to run the
 computation:
 
-: $ ./run-local.sh  <protocol> <n_layers> <round> <back_prop> <n_threads> <n_epochs> [no_loss]
+: $ ./run-local.sh <protocol> <net> <round> <n_threads> <n_epochs> <precision> [<further>]
 
 The options are as follows:
 
@@ -25,20 +28,28 @@ The options are as follows:
   three-party computation, =mal3= (malicious three-party computation),
   =mal4= (malicious four-party computation). All protocols are assuming an
   honest majority.
+- =net= is the network (A-D).
 - =n_layers= is the number of dense layers (1-3).
 - =round= is the kind of rounding, =prob= for probabilistic and =near= for
   nearest.
-- =back_prop= is the back-propagation for the output layer, one of =softmax=,
-  =relu_grad= (ReLU-based gradient), =relu_prob= (ReLU-based probability).
 - =n_threads= is the number of threads per party.
 - =n_epochs= is the number of epochs.
+- =precision= is the precision (in bits) after the decimal point.
+
+The following options can be given in addition.
+
+- =rate<rate>= the learning rate, e.g., =rate.1= for a learning rate of 0.1.
+- =adam=, =adamapprox=, or =amsgrad= to use Adam, Adam with less
+  precise approximation of inverse square root, or AMSgrad instead of
+  SGD.
 
 For example,
 
-: $ ./run-local.sh emul 2 prob softmax 2 20
+: $ ./run-local.sh emul D prob 2 20 32 adamapprox
 
-runs 20 epochs of training two dense layers in the emulation with two threads,
-probabilistic rounding, and softmax output function.
+runs 20 epochs of training network D in the emulation with two threads,
+probabilistic rounding, 32-bit precision, and Adam with less precise
+inverse square root approximation.
 
 ** Running remotely
 
@@ -63,15 +74,15 @@ by whitespace.
 After setting up, you can the following using the same options as
 above:
 
-: $ ./run-remote.sh  <protocol> <n_layers> <round> <back_prop> <n_threads> <n_epochs> [no_loss]
+: $ ./run-remote.sh <protocol> <net> <round> <n_threads> <n_epochs> <precision> [<further>]
 
 For example,
 
-: $ ./run-remote.sh sh3 1 near relu_prob 1 1
+: $ ./run-remote.sh sh3 A near 1 1 16 rate.1
 
-runs one epoch of training one dense layers with semi-honest three-party
-computation, one thread, nearest rounding, and ReLU-based probability
-distribution.
+runs one epoch of training network A with semi-honest three-party
+computation, one thread, and nearest rounding, 16-bit precision,
+and SGD with rate 0.1.
 
 ** Cleartext training
 
@@ -79,4 +90,9 @@ distribution.
 (using floating-point instead of fixed-point representation).
 Simply run the following:
 
-: $ ./train.py <number of dense layers>
+: $ ./train.py <network> <n_epochs> [<optimizer>] [<further>]
+
+=<optimizer>= is either a learning rate for SGD, or =adam= or =amsgrad=
+followed by a learning rate. =<further>= is any combination of =dropout=
+to add a Dropout layer (only with network C) and =fashion= for
+Fashion MNIST.

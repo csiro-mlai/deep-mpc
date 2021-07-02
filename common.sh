@@ -1,16 +1,16 @@
 #!/bin/bash
 
-if test -z "$1" -o -z "$2" -o -z "$3" -o -z "$4" -o -z "$5" -o -z "$6"; then
-    echo "Usage: $0 <protocol> <n_layers> <round> <back_prop> <n_threads> <n_epochs> [no_loss]"
+if test -z "$5"; then
+    echo "Usage: $0 <protocol> <net> <rounding> <n_threads> <n_epochs> <precision> [<further...>]"
     exit 1
 fi
 
 protocol=$1
-n_layers=$2
+net=$2
 round=$3
-back_prop=$4
-n_threads=$5
-n_epochs=$6
+n_threads=$4
+n_epochs=$5
+f=$6
 shift 6
 
 cd MP-SPDZ
@@ -19,13 +19,13 @@ case $protocol in
     sh3) protocol=ring ;;
     mal3) protocol=sy-rep-ring ;;
     mal4) protocol=rep4-ring ;;
-    emul) protocol=emulate ;;
+    emul) protocol=emulate; compile_args=-K ;;
 esac
 
-args="always_acc $*"
+args="$*"
 
-if [[ $n_layers < 3 ]]; then
-    args="${n_layers}dense $args"
+if [[ $net = D ]]; then
+    args="2dense $args"
 fi
 
 if [[ $protocol == rep4-ring ]]; then
@@ -34,21 +34,18 @@ elif [[ $protocol != emulate ]]; then
     args="split3 $args"
 fi
 
+k=$[2 * f - 1]
+args="f$f k$k $args"
+
 if [[ $round = near ]]; then
     args="nearest $args"
 elif [[ $protocol != sy-rep-ring && $round = prob ]]; then
     args="trunc_pr $args"
 fi
 
-if [[ $back_prop = relu_prob ]]; then
-    args="approx $args"
-elif [[ $back_prop = relu_grad ]]; then
-    args="relu_out $args"
-fi
+args="mnist_full_$net $n_epochs 128 $n_threads $args"
 
-args="mnist_full_A $n_epochs 128 $n_threads $args"
-
-python3 ./compile.py -CDR 64 $args | grep -v WARNING
+python3 ./compile.py $compile_args -CDR 64 $args | grep -v WARNING
 
 touch ~/.rnd
 Scripts/setup-ssl.sh 4
