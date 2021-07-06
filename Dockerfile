@@ -11,7 +11,7 @@ RUN apt-get update && apt-get -y install wget tar openssl git make cmake \
 WORKDIR /root
 
 RUN git clone https://github.com/data61/MP-SPDZ
-RUN cd MP-SPDZ; git checkout 15d179a1d11038a9106dc4a7b886445f5105139b
+RUN cd MP-SPDZ; git checkout 99c0549e7205f4a4550cff836abc417227193fa0
 
 ADD download.sh .
 RUN ./download.sh
