@@ -96,3 +96,22 @@ Simply run the following:
 followed by a learning rate. =<further>= is any combination of =dropout=
 to add a Dropout layer (only with network C) and =fashion= for
 Fashion MNIST.
+
+** Data format and scripts
+
+=full.py= processes the whole MNIST dataset, and =full01.py= processes
+two digits to allow logistic regression and similar. By
+default the digits are 0 and 1, but you can request any pair. The
+following processes the digits 4 and 9, which are harder to
+distinguish:
+
+: $ ./full01.py 49
+
+Both output to stdout in the format that =mnist_*.mpc= expect in the
+input file for party 0, that is: training set labels, training set
+data (example by example), test set labels, test set data (example by
+example), all as whitespace-seperated text. Labels are stored as
+one-hot vectors for the whole dataset and 0/1 for logistic regression.
+
+The scripts expect the unzipped MNIST dataset in the current
+directory. Run =download.sh= to download the MNIST dataset.
