@@ -8,12 +8,6 @@ done
 
 . common.sh
 
-if [[ $protocol = rep4-ring ]]; then
-    N=4
-else
-    N=3
-fi
-
 {
     for i in $(seq 0 $[N-1]); do
 	echo $i ${hosts[$i]}

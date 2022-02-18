@@ -1,19 +1,19 @@
-#+TITLE: MNIST Training with Multi-Party Computation
+#+TITLE: Deep Learning Training with Multi-Party Computation
 
-Small set of scripts for training MNIST networks with a number of
-networks using [[https://github.com/data61/MP-SPDZ/][MP-SPDZ]].
-This version underlies the figures in
+Small set of scripts for training MNIST and CIFAR10 with a number of
+networks using [[https://github.com/data61/MP-SPDZ/][MP-SPDZ]]. This version underlies the figures in
 <https://arxiv.org/abs/2107.00501>. For the version underlying
 <https://eprint.iacr.org/2020/1330> and
 <https://arxiv.org/abs/2011.11202>, see the =v1= branch.
 
 ** Installation (with Docker)
 
+
 Run the following  from this directory to build a Docker container:
 
 : $ docker build .
 
-At the of the installation, the examples below are run automatically.
+At the of the installation, some examples are run automatically.
 
 ** Running locally
 
@@ -24,12 +24,16 @@ computation:
 
 The options are as follows:
 
-- =protocol= is one of =emul= (emulation), =sh3= (semi-honest
-  three-party computation, =mal3= (malicious three-party computation),
-  =mal4= (malicious four-party computation). All protocols are assuming an
-  honest majority.
-- =net= is the network (A-D).
-- =n_layers= is the number of dense layers (1-3).
+- =protocol= is one of =emul= (emulation), =sh2= (semi-honest
+  two-party computation) =sh3= (semi-honest three-party computation,
+  =mal3= (malicious three-party computation), =mal4= (malicious
+  four-party computation), =dm3= (dishonest-majority semi-honest
+  three-party computation), =sh10= (semi-honest ten-party
+  computation), =dm10= (dishonest-majority semi-honest ten-party
+  computation).  All protocols assume an honest majority unless stated
+  otherwise.
+- =net= is the network (A-D for MNIST and alex for Falcon AlexNet on
+  CIFAR10).
 - =round= is the kind of rounding, =prob= for probabilistic and =near= for
   nearest.
 - =n_threads= is the number of threads per party.
