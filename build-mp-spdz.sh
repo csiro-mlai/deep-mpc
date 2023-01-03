@@ -1,6 +1,7 @@
 #!/bin/bash
 
 cd MP-SPDZ
+sed -i s#git://github.com#https://github.com#g Makefile .gitmodules
 echo CXX = clang++ >> CONFIG.mine
 make -j8 tldr
 mkdir static
