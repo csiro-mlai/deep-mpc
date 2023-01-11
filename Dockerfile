@@ -29,8 +29,6 @@ RUN ./setup-ssh.sh
 ADD convert.sh *.py ./
 RUN ./convert.sh
 
-ADD *.sh *.py HOSTS ./
-RUN ./test_protocols.sh
-
-RUN ./run-local.sh emul D prob 2 3 32 adamapprox
-RUN service ssh start; ./run-remote.sh sh3 A near 1 1 16 rate.1
+ADD hinet.mpc cifar_lenet.mpc benchmarks.sh ./
+RUN ./benchmarks.sh hinet
+RUN ./benchmarks.sh cifar_lenet
