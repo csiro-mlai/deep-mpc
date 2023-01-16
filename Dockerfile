@@ -29,6 +29,8 @@ RUN ./setup-ssh.sh
 ADD convert.sh *.py ./
 RUN ./convert.sh
 
+ADD *.sh *.py HOSTS ./
+
 ADD hinet.mpc cifar_lenet.mpc benchmarks.sh ./
 RUN ./benchmarks.sh hinet
 RUN ./benchmarks.sh cifar_lenet
