@@ -1,17 +1,27 @@
 #!/usr/bin/python3
 
+import sys
+import numpy
+
+binary = 'binary' in sys.argv
+
+bout = open('/tmp/cifar10-Binary-P0-0', 'wb')
 out = open('/tmp/cifar10-Input-P0-0', 'w')
 
+if binary:
+    def ff(x):
+        bout.write(x.astype(numpy.single).tobytes())
+else:
+    def ff(x):
+        numpy.savetxt(out, x.reshape(x.shape[0], -1), '%.6f')
+
 def f(x):
-    for a in x:
-        aa = (a / 255 * 2 - 1)
-        line = ''
-        for i in range(1024):
-            for j in range(3):
-                line += '%.6f ' % aa[i + 1024 * j]
-        line.strip()
-        out.write(line)
-        out.write('\n')
+    x = numpy.reshape(x, (x.shape[0], 3, 32, 32))
+    x = numpy.moveaxis(x, 1, -1)
+    print(x.shape)
+    x = (x / 255 * 2 - 1)
+    ff(x)
+    print (x.max(), x.min(), x.sum())
 
 def g(x):
     for a in x:

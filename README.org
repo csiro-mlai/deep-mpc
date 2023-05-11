@@ -13,7 +13,7 @@ Run the following  from this directory to build a Docker container:
 
 : $ docker build .
 
-At the of the installation, some examples are run automatically.
+=Dockerfile= contains some commented out tests at the end.
 
 ** Running locally
 
@@ -32,7 +32,8 @@ The options are as follows:
   computation), =dm10= (dishonest-majority semi-honest ten-party
   computation).  All protocols assume an honest majority unless stated
   otherwise.
-- =net= is the network (A-D for MNIST and alex for Falcon AlexNet on
+- =net= is the network (A-D for MNIST, alex for Falcon AlexNet on
+  CIFAR10, and new_alex for a more sophisticated AlexNet-like network on
   CIFAR10).
 - =round= is the kind of rounding, =prob= for probabilistic and =near= for
   nearest.

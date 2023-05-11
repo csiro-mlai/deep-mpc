@@ -62,6 +62,9 @@ fi
 if [[ $net = alex ]]; then
     args="falcon_alex $n_epochs 128 $n_threads $args"
     run_opt="-IF /tmp/cifar10-Input $run_opt"
+elif [[ $net = new_alex ]]; then
+    args="alex $n_epochs 128 $n_threads $args"
+    run_opt="-IF /tmp/cifar10-Input $run_opt"
 else
     args="mnist_full_$net $n_epochs 128 $n_threads $args"
 fi
