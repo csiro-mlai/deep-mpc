@@ -69,7 +69,7 @@ else
     args="mnist_full_$net $n_epochs 128 $n_threads $args"
 fi
 
-python3 ./compile.py $compile_args -CD $args | grep -v WARNING
+python3 ./compile.py $compile_args -b 100000 -CD $args | grep -v WARNING
 
 touch ~/.rnd
 Scripts/setup-ssl.sh 10
