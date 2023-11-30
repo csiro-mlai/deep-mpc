@@ -1,0 +1,38 @@
+import pandas
+from sklearn.model_selection import train_test_split
+from Compiler import decision_tree
+
+data = pandas.read_csv(
+    'https://datahub.io/machine-learning/adult/r/adult.csv')
+#'/tmp/adult.csv')
+
+data, attr_types = decision_tree.preprocess_pandas(data)
+
+# label is last column
+X = data[:,:-1]
+y = data[:,-1]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+X_train = sint.input_tensor_via(0, X_train)
+X_test = sint.input_tensor_via(0, X_test)
+
+y_train = sint.input_tensor_via(0, y_train)
+y_test = sint.input_tensor_via(0, y_test)
+
+# needed for correct Gini coefficient
+sfix.round_nearest = True
+sfix.set_precision(15, 31)
+
+# input values all fit 32 bits
+program.set_bit_length(32)
+
+tree = decision_tree.TreeClassifier(max_depth=10)
+
+# training with level-wise accuracy output
+tree.fit_with_testing(X_train, y_train, X_test, y_test, attr_types=attr_types)
+
+# plain training
+tree.fit(X_train, y_train, attr_types=attr_types)
+
+print_ln('%s', (tree.predict(X_test) - y_test.get_vector()).reveal())

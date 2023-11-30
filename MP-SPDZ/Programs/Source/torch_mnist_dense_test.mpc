@@ -1,0 +1,40 @@
+# this tests a previously stored dense neural network on MNIST
+
+program.options_from_args()
+
+import torchvision
+
+data = []
+for train in True, False:
+    ds = torchvision.datasets.MNIST(root='/tmp', train=train, download=True)
+    # normalize to [0,1] before input
+    samples = sfix.input_tensor_via(0, ds.data / 255)
+    labels = sint.input_tensor_via(0, ds.targets, one_hot=True)
+    data += [(labels, samples)]
+
+(training_labels, training_samples), (test_labels, test_samples) = data
+
+import torch
+import torch.nn as nn
+
+net = nn.Sequential(
+    nn.Flatten(),
+    nn.Linear(28 * 28, 128),
+    nn.ReLU(),
+    nn.Linear(128, 128),
+    nn.ReLU(),
+    nn.Linear(128, 10)
+)
+
+from Compiler import ml
+
+layers = ml.layers_from_torch(net, training_samples.shape, 128)
+
+optimizer = ml.Optimizer(layers)
+
+start = 0
+for var in optimizer.trainable_variables:
+    start = var.read_from_file(start)
+
+n_correct, loss = optimizer.reveal_correctness(test_samples, test_labels, 128)
+print_ln('Accuracy: %s/%s', n_correct, len(test_samples))

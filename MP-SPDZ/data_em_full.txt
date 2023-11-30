@@ -1,0 +1,121 @@
+Using SGD
+Starting timer 1 at 0 (0 MB, 0 rounds) after 2.52e-05
+Hohoho
+done with epoch 0
+Elapsed time: 90.9287
+Stopped timer 1 at 79.8735 (0 MB, 0 rounds)
+train_acc: 0.129317 (7759/60000)
+test loss: 2.22182
+acc: 0.1905 (1905/10000)
+Starting timer 1 at 79.8735 (0 MB, 0 rounds) after 5.59885
+Hohoho
+done with epoch 1
+Elapsed time: 176.347
+Stopped timer 1 at 159.693 (0 MB, 0 rounds)
+train_acc: 0.3135 (18810/60000)
+test loss: 2.05392
+acc: 0.4687 (4687/10000)
+Starting timer 1 at 159.693 (0 MB, 0 rounds) after 5.59481
+Hohoho
+done with epoch 2
+Elapsed time: 262.419
+Stopped timer 1 at 240.17 (0 MB, 0 rounds)
+train_acc: 0.521067 (31264/60000)
+test loss: 1.83308
+acc: 0.5869 (5869/10000)
+Starting timer 1 at 240.17 (0 MB, 0 rounds) after 5.59661
+Hohoho
+done with epoch 3
+Elapsed time: 349.968
+Stopped timer 1 at 322.122 (0 MB, 0 rounds)
+train_acc: 0.610317 (36619/60000)
+test loss: 1.56737
+acc: 0.6625 (6625/10000)
+Starting timer 1 at 322.122 (0 MB, 0 rounds) after 5.60625
+Hohoho
+done with epoch 4
+Elapsed time: 436.9
+Stopped timer 1 at 403.448 (0 MB, 0 rounds)
+train_acc: 0.682517 (40951/60000)
+test loss: 1.27805
+acc: 0.7346 (7346/10000)
+Starting timer 1 at 403.448 (0 MB, 0 rounds) after 5.61859
+Hohoho
+done with epoch 5
+Elapsed time: 522.904
+Stopped timer 1 at 483.833 (0 MB, 0 rounds)
+train_acc: 0.7403 (44418/60000)
+test loss: 1.01585
+acc: 0.7665 (7665/10000)
+Starting timer 1 at 483.833 (0 MB, 0 rounds) after 5.60132
+Hohoho
+done with epoch 6
+Elapsed time: 611.837
+Stopped timer 1 at 567.166 (0 MB, 0 rounds)
+train_acc: 0.770317 (46219/60000)
+test loss: 0.814224
+acc: 0.7946 (7946/10000)
+Starting timer 1 at 567.166 (0 MB, 0 rounds) after 5.60631
+Hohoho
+done with epoch 7
+Elapsed time: 701.455
+Stopped timer 1 at 651.177 (0 MB, 0 rounds)
+train_acc: 0.796083 (47765/60000)
+test loss: 0.682052
+acc: 0.8178 (8178/10000)
+Starting timer 1 at 651.177 (0 MB, 0 rounds) after 5.62865
+Hohoho
+done with epoch 8
+Elapsed time: 790.953
+Stopped timer 1 at 735.046 (0 MB, 0 rounds)
+train_acc: 0.814833 (48890/60000)
+test loss: 0.596496
+acc: 0.8346 (8346/10000)
+Starting timer 1 at 735.046 (0 MB, 0 rounds) after 5.60701
+Hohoho
+done with epoch 9
+Elapsed time: 880.268
+Stopped timer 1 at 818.754 (0 MB, 0 rounds)
+train_acc: 0.8325 (49950/60000)
+test loss: 0.538269
+acc: 0.85 (8500/10000)
+Starting timer 1 at 818.754 (0 MB, 0 rounds) after 5.60323
+Hohoho
+done with epoch 10
+Elapsed time: 969.887
+Stopped timer 1 at 902.77 (0 MB, 0 rounds)
+train_acc: 0.846267 (50776/60000)
+test loss: 0.497558
+acc: 0.8619 (8619/10000)
+Starting timer 1 at 902.77 (0 MB, 0 rounds) after 5.60386
+Hohoho
+done with epoch 11
+Elapsed time: 1059.49
+Stopped timer 1 at 986.773 (0 MB, 0 rounds)
+train_acc: 0.857033 (51422/60000)
+test loss: 0.466705
+acc: 0.871 (8710/10000)
+Starting timer 1 at 986.773 (0 MB, 0 rounds) after 5.60237
+Hohoho
+done with epoch 12
+Elapsed time: 1148.9
+Stopped timer 1 at 1070.58 (0 MB, 0 rounds)
+train_acc: 0.8654 (51924/60000)
+test loss: 0.442291
+acc: 0.8773 (8773/10000)
+Starting timer 1 at 1070.58 (0 MB, 0 rounds) after 5.60429
+Hohoho
+done with epoch 13
+Elapsed time: 1238.4
+Stopped timer 1 at 1154.47 (0 MB, 0 rounds)
+train_acc: 0.87215 (52329/60000)
+test loss: 0.423736
+acc: 0.8825 (8825/10000)
+Starting timer 1 at 1154.47 (0 MB, 0 rounds) after 5.61156
+Hohoho
+done with epoch 14
+Elapsed time: 1327.81
+Stopped timer 1 at 1238.27 (0 MB, 0 rounds)
+train_acc: 0.876983 (52619/60000)
+test loss: 0.408081
+acc: 0.8855 (8855/10000)

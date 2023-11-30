@@ -1,0 +1,74 @@
+# this trains a LeNet on MNIST in cleartext and tests it securely
+
+program.options_from_args()
+
+import torchvision
+
+data = []
+for train in True, False:
+    ds = torchvision.datasets.MNIST(root='/tmp', train=train, download=True)
+    # normalize to [0,1] before input
+    samples = sfix.input_tensor_via(0, ds.data / 255., binary=True)
+    labels = sint.input_tensor_via(0, ds.targets, binary=True, one_hot=True)
+    data += [(labels, samples)]
+
+(training_labels, training_samples), (test_labels, test_samples) = data
+
+import torch
+import torch.nn as nn
+
+net = nn.Sequential(
+    nn.Conv2d(1, 20, 5),
+    nn.ReLU(),
+    nn.MaxPool2d(2),
+    nn.Conv2d(20, 50, 5),
+    nn.ReLU(),
+    nn.MaxPool2d(2),
+    nn.Flatten(),
+    nn.ReLU(),
+    nn.Linear(800, 500),
+    nn.ReLU(),
+    nn.Linear(500, 10)
+)
+
+# train for a bit
+transform = torchvision.transforms.Compose(
+    [torchvision.transforms.ToTensor()])
+ds = torchvision.datasets.MNIST(root='/tmp', transform=transform, train=True)
+optimizer = torch.optim.Adam(net.parameters(), amsgrad=True)
+criterion = nn.CrossEntropyLoss()
+
+for i, data in enumerate(torch.utils.data.DataLoader(ds, batch_size=128)):
+    inputs, labels = data
+    optimizer.zero_grad()
+    outputs = net(inputs)
+    loss = criterion(outputs, labels)
+    loss.backward()
+    optimizer.step()
+
+with torch.no_grad():
+    ds = torchvision.datasets.MNIST(root='/tmp', transform=transform,
+                                    train=False)
+    total = correct_classified = 0
+    for data in torch.utils.data.DataLoader(ds, batch_size=128):
+        inputs, labels = data
+        outputs = net(inputs)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct_classified += (predicted == labels).sum().item()
+    test_acc = (100 * correct_classified / total)
+    print('Cleartext accuracy of the network: %.2f %%' % test_acc)
+
+from Compiler import ml
+
+layers = ml.layers_from_torch(net, training_samples.shape, 128, input_via=0)
+
+ml.set_n_threads(8)
+
+optimizer = ml.Optimizer(layers)
+
+# output to be used in Scripts/torch_mnist_lenet_import.py
+optimizer.reveal_model_to_binary()
+
+n_correct, loss = optimizer.reveal_correctness(test_samples, test_labels, 128, running=True)
+print_ln('Secure accuracy: %s/%s', n_correct, len(test_samples))

@@ -1,0 +1,313 @@
+from Compiler import library as lib, oram, path_oram
+from Compiler.dijkstra import HeapQ
+from Compiler.path_oblivious_heap import (
+    POHToHeapQAdapter,
+    POHVariant,
+    UniquePOHToHeapQAdapter,
+    path_oblivious_sort,
+)
+from Compiler.types import Array, sint
+from Compiler.util import log2
+
+DEBUG = True
+
+from Compiler import path_oblivious_heap
+
+path_oblivious_heap.DEBUG = False
+
+
+def noop(*args, **kwargs):
+    pass
+
+
+# Only print if DEBUG is enabled
+dprint = lib.print_ln if DEBUG else noop
+
+# Benchmark types
+INSERT = True
+EXTRACT = True
+SORTING = False
+
+INSERT = INSERT or EXTRACT  # Always insert if we are going to extract
+
+# Benchmark parameters
+## General
+KEY_SIZE = lambda n: 32
+VALUE_SIZE = lambda n: log2(n)
+N_THREADS = 1
+N_PARALLEL = 1
+
+## Insert / ExtractMin
+RANGE = [2**i for i in range(1, 18)]
+# Important: there must be space to insert this amount of entries in the queue
+OPERATIONS_PER_STEP = 10
+TIME_INIT = True
+TREE_HEAP = False
+TREE_PATH_HEAP = False
+LINEAR_HEAP = False
+OPTIMAL_TREE_HEAP = False
+OPTIMAL_PATH_HEAP = False
+POH_PATH = True
+POH_PATH_CONSTANT_STASH = True
+UNIQUE_POH_PATH_LINEAR = False
+UNIQUE_POH_PATH_PATH = False
+UNIQUE_POH_PATH_CONSTANT_STASH_LINEAR = False
+UNIQUE_POH_PATH_CONSTANT_STASH_PATH = False
+
+## Sorting
+LENGTHS = [2**i for i in range(1, 10)]
+SORTING_BITS = 32
+RADIX_SORT = True
+POS = True
+POS_CONSTANT_STASH = True
+
+# Set module variables based on parameters
+oram.n_threads = N_THREADS
+oram.n_parallel = N_PARALLEL
+oram.n_threads_for_tree = N_THREADS
+
+# Timing with consecutive ids
+timer_offset = 1000  # Hopefully run timers in an unused range
+
+
+def start_fancy_timer(id: int | None = None) -> int:
+    global timer_offset
+    _id = id if id is not None else timer_offset
+    lib.start_timer(_id)
+    if id is None:
+        timer_offset += 1
+    return _id
+
+
+def stop_fancy_timer(id):
+    lib.stop_timer(id)
+
+
+# BENCHMARK
+
+if INSERT:
+
+    def operation_round(i, id, q, apply_op, capacity, tag=""):
+        dprint(f"\n[{tag}] Update %s for capacity {capacity}", i.reveal())
+        start_fancy_timer(id)
+        apply_op(q, i)
+        stop_fancy_timer(id)
+
+    def benchmark_operations(q_init, capacity, *args, tag="", **kwargs):
+        global timer_offset
+        apply_insert = lambda q, i: q.update(0, i)
+        apply_extract = lambda q, _: q.pop()
+        init_id = timer_offset
+        insert_id = init_id + 1
+        extract_id = insert_id + 1
+        dprint(
+            f"\n[{tag}] Running {OPERATIONS_PER_STEP} update{'s' if OPERATIONS_PER_STEP > 1 else ''} for capacity {capacity}"
+        )
+        @lib.for_range(OPERATIONS_PER_STEP)
+        def _(i):
+            dprint(f"\n[{tag}] Initializing empty structure with capacity {capacity}")
+            if TIME_INIT:
+                start_fancy_timer(init_id)
+            q = q_init(capacity, *args, **kwargs)
+            if TIME_INIT:
+                stop_fancy_timer(init_id)
+            if INSERT:
+                operation_round(
+                    i, insert_id, q, apply_insert, capacity, tag=tag + " insert"
+                )
+                if EXTRACT:
+                    operation_round(
+                        i,
+                        extract_id,
+                        q,
+                        apply_extract,
+                        capacity,
+                        tag=tag + " extract_min",
+                    )
+        timer_offset += 3
+
+    dprint(f"\n\nBENCHMARKING INSERT {'AND EXTRACT ' if EXTRACT else ''}TIME")
+    for capacity in RANGE:
+        entry_size = (KEY_SIZE(capacity), VALUE_SIZE(capacity))
+
+        dprint(f"\nCAPACITY {capacity}")
+
+        if TREE_HEAP:
+            # Benchmark binary heap built on ORAM (Tree ORAM variant)
+            benchmark_operations(
+                HeapQ,
+                capacity,
+                oram_type=oram.RecursiveORAM,
+                entry_size=entry_size,
+                tag="ORAM Heap (Tree)",
+            )
+
+        if TREE_PATH_HEAP:
+            # Benchmark binary heap built on ORAM (Path ORAM variant)
+            benchmark_operations(
+                HeapQ,
+                capacity,
+                oram_type=path_oram.RecursivePathORAM,
+                entry_size=entry_size,
+                tag="ORAM Heap (Path)",
+            )
+
+        if LINEAR_HEAP:
+            # Benchmark binary heap built on ORAM (Linear ORAM variant)
+            benchmark_operations(
+                HeapQ,
+                capacity,
+                oram_type=oram.LinearORAM,
+                entry_size=entry_size,
+                tag="ORAM Heap (Linear)",
+            )
+
+        if OPTIMAL_TREE_HEAP:
+            # Benchmark binary heap built on ORAM (OptimalORAM variant)
+            benchmark_operations(
+                HeapQ,
+                capacity,
+                oram_type=oram.OptimalORAM,
+                entry_size=entry_size,
+                tag="ORAM Heap (Optimal Tree)",
+            )
+
+        if OPTIMAL_PATH_HEAP:
+            # Benchmark binary heap built on ORAM (OptimalORAM Path variant)
+            benchmark_operations(
+                HeapQ,
+                capacity,
+                oram_type=path_oram.OptimalORAM,
+                entry_size=entry_size,
+                tag="ORAM Heap (Optimal Path)",
+            )
+
+        if POH_PATH:
+            # Benchmark Path Oblivious Heap (Path variant)
+            benchmark_operations(
+                POHToHeapQAdapter,
+                capacity,
+                bucket_size=2,
+                stash_size=log2(capacity) ** 2,
+                variant=POHVariant.PATH,
+                entry_size=entry_size,
+                tag="POH (Path (superlogarithmic stash size))",
+            )
+
+        if POH_PATH_CONSTANT_STASH:
+            # Benchmark Path Oblivious Heap (Path variant with constant stash size)
+            benchmark_operations(
+                POHToHeapQAdapter,
+                capacity,
+                bucket_size=2,
+                stash_size=20,  # based on empirical analysis by Keller and Scholl
+                variant=POHVariant.PATH,
+                entry_size=entry_size,
+                tag="POH (Path (constant stash size))",
+            )
+
+        if UNIQUE_POH_PATH_LINEAR:
+            # Benchmark Unique Path Oblivious Heap (Path variant with constant stash size and linear ORAM)
+            benchmark_operations(
+                UniquePOHToHeapQAdapter,
+                capacity,
+                bucket_size=2,
+                stash_size=log2(capacity) ** 2,
+                variant=POHVariant.PATH,
+                oram_type=oram.LinearORAM,
+                entry_size=entry_size,
+                tag="Unique POH (Path (superlogarithmic stash size)) (Linear ORAM)",
+            )
+
+        if UNIQUE_POH_PATH_PATH:
+            # Benchmark Unique Path Oblivious Heap (Path variant with constant stash size and linear ORAM)
+            benchmark_operations(
+                UniquePOHToHeapQAdapter,
+                capacity,
+                bucket_size=2,
+                stash_size=log2(capacity) ** 2,
+                variant=POHVariant.PATH,
+                oram_type=path_oram.RecursivePathORAM,
+                entry_size=entry_size,
+                tag="Unique POH (Path (superlogarithmic stash size)) (Path ORAM)",
+            )
+
+        if UNIQUE_POH_PATH_CONSTANT_STASH_LINEAR:
+            benchmark_operations(
+                UniquePOHToHeapQAdapter,
+                capacity,
+                bucket_size=2,
+                stash_size=20,
+                variant=POHVariant.PATH,
+                oram_type=oram.LinearORAM,
+                entry_size=entry_size,
+                tag="Unique POH (Path (constant stash size)) (Linear ORAM)",
+            )
+
+        if UNIQUE_POH_PATH_CONSTANT_STASH_PATH:
+            benchmark_operations(
+                UniquePOHToHeapQAdapter,
+                capacity,
+                bucket_size=2,
+                stash_size=20,
+                variant=POHVariant.PATH,
+                oram_type=path_oram.RecursivePathORAM,
+                entry_size=entry_size,
+                tag="Unique POH (Path (constant stash size)) (Path ORAM)",
+            )
+
+if SORTING:
+    dprint("\n\nBENCHMARKING SORTING TIME")
+    for n in LENGTHS:
+        dprint(f"\nLENGTH {n}")
+        a = Array(n, sint)
+
+        @lib.for_range(n)
+        def _(i):
+            a[i] = sint.get_random_int(SORTING_BITS)
+
+        if RADIX_SORT:
+            a_ = Array(n, sint).assign(a)
+            lib.print_ln(
+                "\n[Sorting (Radix)] Unsorted array of length %s: %s", n, a_.reveal()
+            )
+            lib.print_ln("[Sorting (Radix)] Sorting array...")
+            id = start_fancy_timer()
+            a_.sort()
+            stop_fancy_timer(id)
+            lib.print_ln("[Sorting (Radix)] Sorted array: %s", a_.reveal())
+
+        if POS:
+            a_ = Array(n, sint).assign(a)
+            lib.print_ln(
+                "\n[Sorting (POH) superlogarithmic stash size] Unsorted array of length %s: %s",
+                n,
+                a_.reveal(),
+            )
+            lib.print_ln("[Sorting (POH) superlogarithmic stash size] Sorting array...")
+            id = start_fancy_timer()
+            path_oblivious_sort(
+                a_, a_, SORTING_BITS, stash_size=log2(n) ** 2, variant=POHVariant.PATH
+            )
+            stop_fancy_timer(id)
+            lib.print_ln(
+                "[Sorting (POH) superlogarithmic stash size] Sorted array: %s",
+                a_.reveal(),
+            )
+
+        if POS_CONSTANT_STASH:
+            a_ = Array(n, sint).assign(a)
+            lib.print_ln(
+                "\n[Sorting (POH) constant stash size] Unsorted array of length %s: %s",
+                n,
+                a_.reveal(),
+            )
+            lib.print_ln("[Sorting (POH) constant stash size] Sorting array...")
+            id = start_fancy_timer()
+            path_oblivious_sort(
+                a_, a_, SORTING_BITS, stash_size=20, variant=POHVariant.PATH
+            )
+            stop_fancy_timer(id)
+            lib.print_ln(
+                "[Sorting (POH) constant stash size] Sorted array: %s", a_.reveal()
+            )

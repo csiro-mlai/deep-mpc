@@ -80,7 +80,7 @@ ds_train = ds_train.map(
     normalize_img, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 ds_train = ds_train.cache()
 ds_train = ds_train.shuffle(ds_info.splits['train'].num_examples)
-ds_train = ds_train.batch(128)
+ds_train = ds_train.batch(20)
 ds_train = ds_train.prefetch(tf.data.experimental.AUTOTUNE)
 
 """### Build evaluation pipeline
@@ -93,7 +93,7 @@ Testing pipeline is similar to the training pipeline, with small differences:
 
 ds_test = ds_test.map(
     normalize_img, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-ds_test = ds_test.batch(128)
+ds_test = ds_test.batch(10)
 ds_test = ds_test.cache()
 ds_test = ds_test.prefetch(tf.data.experimental.AUTOTUNE)
 
@@ -102,9 +102,13 @@ ds_test = ds_test.prefetch(tf.data.experimental.AUTOTUNE)
 Plug the input pipeline into Keras.
 """
 
+print(ds_train)
+print(ds_test)
+
+
 network = 'A'
-n_epochs = 10
-lr = 0.1
+n_epochs = 1
+lr = 0.01
 adam = False
 amsgrad = False
 
@@ -164,6 +168,12 @@ elif network == 'C':
   ]
   if 'dropout' in sys.argv:
     layers.insert(-2, tf.keras.layers.Dropout(0.5))
+elif network == 'small_mnist':
+  layers = [
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dense(10),
+  ]
 else:
   raise Exception('unknown network: ' + network)
 
@@ -176,7 +186,8 @@ else:
   optim = tf.keras.optimizers.SGD(momentum=0.9, learning_rate=lr,)
 
 model.compile(
-  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+  # loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+  loss=tf.keras.losses.MeanSquaredError(reduction="auto", name="mean_squared_error"),
   metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
   optimizer=optim
 )

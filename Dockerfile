@@ -5,7 +5,7 @@ RUN apt-get update && apt-get -y install wget tar openssl git make cmake \
     libtool yasm texinfo libboost-dev libssl-dev libboost-system-dev \
     libboost-thread-dev libgmp-dev rsync ssh openssh-server procps
 
-WORKDIR /root
+WORKDIR /home/sankha/Desktop/code/fresh/deep-mpc
 
 ADD download.sh .
 RUN ./download.sh
@@ -15,7 +15,7 @@ RUN pip3 install numpy
 ADD prepare.py .
 RUN ./prepare.py
 
-RUN git clone -b v0.3.6 https://github.com/data61/MP-SPDZ
+RUN git clone https://github.com/data61/MP-SPDZ
 
 ADD build-mp-spdz.sh .
 RUN ./build-mp-spdz.sh

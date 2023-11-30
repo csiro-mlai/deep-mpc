@@ -1,0 +1,19 @@
+Using security parameter 40
+Using SGD
+REUSING DATA - ONLY FOR BENCHMARKING
+Starting timer 1 at 0 (0 MB, 0 rounds) after 3.45e-05
+done with epoch 0
+Elapsed time: 4.51134
+Stopped timer 1 at 4.30816 (89.92 MB, 112016 rounds)
+test loss: 2.30154
+acc: 0 (0/10)
+reset after reducing learning rate to 0.00498962
+The following benchmarks are excluding preprocessing (offline phase).
+Time = 4.9282 seconds
+Time1 = 4.30816 seconds (89.92 MB, 112016 rounds)
+Data sent = 113.194 MB in ~115324 rounds (party 0 only; use '-v' for more details)
+Global data sent = 226.388 MB (all parties)
+This program might benefit from some protocol options.
+Consider adding the following at the beginning of your code:
+        program.use_trunc_pr = True
+        program.use_edabit(True)

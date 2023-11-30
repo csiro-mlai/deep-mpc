@@ -1,0 +1,46 @@
+import ml
+import math
+import re
+import util
+
+program.options_from_args()
+sfix.set_precision_from_args(program, adapt_ring=True)
+ml.use_mux = 'mux' in program.args
+MultiArray.disable_index_checks()
+
+n_examples = 20
+n_test = 10
+n_features = 28*28
+n_inner = 64
+n_epochs = 1
+
+batch_size = n_examples
+ml.Layer.back_batch_size = batch_size
+ml.set_n_threads(1)
+
+if 'train10k' in program.args:
+    n_examples = 10000
+
+if 'train100' in program.args:
+    n_examples = 100
+    n_test = 5000
+
+if 'v1' in program.args:   
+    layers = [ml.Dense(n_examples, n_features, 10, debug=True)]
+else:
+    layers = [
+        ml.Dense(n_examples, n_features, n_inner, activation='relu', debug=True),
+        ml.Dense(n_examples, n_inner, 10, debug=True)
+    ]
+
+if 'test10k' in program.args:
+    n_test = 10000
+
+layers += [ml.MultiOutput.from_args(program, n_examples, 10)]
+
+Y = sfix.Matrix(n_test, 10)
+X = sfix.Matrix(n_test, n_features)
+
+sgd = ml.Optimizer.from_args(program, layers)
+sgd.run_by_args(program, n_epochs, batch_size, X, Y)
+

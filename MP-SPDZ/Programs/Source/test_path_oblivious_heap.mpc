@@ -1,0 +1,169 @@
+from Compiler import library as lib, path_oblivious_heap as poh, util
+from Compiler.path_oram import OptimalORAM, RecursivePathORAM
+from Compiler import dijkstra
+from Compiler.types import sint
+
+### SETUP ###
+
+# Which tests are we running?
+SCRATCHPAD = False
+UNIT = True
+DIJKSTRA = True
+
+# Module settings
+from Compiler import oram, path_oblivious_heap
+
+oram.crash_on_overflow = False
+poh.CRASH_ON_EMPTY = True
+poh.TRACE = False
+poh.DEBUG = True
+
+### UTILITY ###
+
+# Timing with consecutive ids
+
+timer_offset = 1000  # Hopefully run timers in an unused range
+
+
+def start_fancy_timer(id: int | None = None) -> int:
+    global timer_offset
+    _id = id if id is not None else timer_offset
+    lib.start_timer(_id)
+    if id is None:
+        timer_offset += 1
+    return _id
+
+
+def stop_fancy_timer(id):
+    lib.stop_timer(id)
+
+
+if SCRATCHPAD:
+    q = poh.UniquePOHToHeapQAdapter(3)
+    q.insert(0, 10)
+    q.insert(1, 1)
+    q.insert(2, 1)
+
+    lib.print_ln("%s", q.extract_min().reveal())
+    lib.print_ln("%s", q.extract_min().reveal())
+    lib.print_ln("%s", q.extract_min().reveal())
+
+if UNIT:
+    # POH
+    lib.print_ln("Testing PathObliviousHeap.__init__...")
+    q = poh.PathObliviousHeap(10)
+    lib.print_ln("Initialization was successful!")
+
+    lib.print_ln("Testing PathObliviousHeap.insert of two identical entries...")
+    lib.print_ln("Inserting {value: 5, priority: 10}...")
+    q.insert(5, 10)
+    lib.print_ln("Inserting {value: 5, priority: 10}...")
+    q.insert(5, 10)
+    lib.print_ln("Inserts were successful!")
+
+    lib.print_ln("Testing PathObliviousHeap.extract_min of two identical entries...")
+    lib.print_ln("Extracted values should be 5, 5.")
+    v = q.extract_min()
+    lib.print_ln("Extracted value %s", v.reveal())
+    v = q.extract_min()
+    lib.print_ln("Extracted value %s", v.reveal())
+
+    # UniquePOH
+    lib.print_ln("Testing UniquePathObliviousHeap.__init__...")
+    q = poh.UniquePathObliviousHeap(4)
+    lib.print_ln("Initialization was successful!")
+    lib.print_ln("Testing UniquePathObliviousHeap.insert...")
+    lib.print_ln("Inserting {value: 5, priority: 10}...")
+    q.insert(5, 10)
+    lib.print_ln("Inserting {value: 5, priority: 10}...")
+    q.insert(5, 10)
+    lib.print_ln("Inserting {value: 6, priority: 11}...")
+    q.insert(6, 11)
+    lib.print_ln("Inserts were successful!")
+
+    lib.print_ln("Testing UniquePathObliviousHeap.extract_min twice...")
+    lib.print_ln("Extracted values should be 5, 6.")
+    v = q.extract_min()
+    lib.print_ln("Extracted value %s", v.reveal())
+    v = q.extract_min()
+    lib.print_ln("Extracted value %s", v.reveal())
+
+    lib.print_ln("Testing UniquePathObliviousHeap.insert and update...")
+    lib.print_ln("Inserting {value: 7, priority: 14}...")
+    q.insert(7, 14)
+    lib.print_ln("Updating {value: 7, priority: 1}...")
+    q.update(7, 1)
+    lib.print_ln("Inserting {value: 2, priority: 10}...")
+    q.update(7, 1)
+    lib.print_ln("Inserts and updates were successful!")
+
+    lib.print_ln("Testing UniquePathObliviousHeap.find_min...")
+    v = q.find_min()
+    lib.print_ln("Found value should be 7.")
+    lib.print_ln("Found value %s", v.reveal())
+
+    # SubtreeMinEntry
+    lib.print_ln("Testing SubtreeMinEntry comparisons...")
+    id = start_fancy_timer()
+    poh.test_SubtreeMinEntry_cmp()
+    stop_fancy_timer(id)
+
+if DIJKSTRA:
+    dijkstra.HeapQ = poh.POHToHeapQAdapter
+
+    # example code for graph with vertices 0,1,2 and with following weights
+    # 0 -> 1: 5
+    # 0 -> 2: 20
+    # 1 -> 2: 10
+
+    lib.print_ln("Testing dijkstra on Path Oblivious Heap...")
+    lib.print_ln("Output should be the following:")
+    lib.print_ln("from 0 to 0 at cost 0 via vertex 0")
+    lib.print_ln("from 0 to 1 at cost 5 via vertex 0")
+    lib.print_ln("from 0 to 2 at cost 15 via vertex 1")
+
+    # structure for edges
+    # contains tuples of form (neighbor, cost, last neighbor bit)
+    edges = OptimalORAM(
+        4,  # number of edges
+        entry_size=(
+            2,  # enough bits for vertices
+            5,  # enough bits for costs
+            1,
+        ),  # always one
+    )
+
+    # first edge from vertex 0
+    edges[0] = (1, 5, 0)
+    # second and last edge from vertex 0
+    edges[1] = (2, 20, 1)
+    # edge from vertex 1
+    edges[2] = (2, 10, 1)
+    # dummy edge from vertex 2 to itself
+    edges[3] = (2, 0, 1)
+
+    # structure assigning edge list indices to vertices
+    e_index = OptimalORAM(
+        3, entry_size=2  # number vertices
+    )  # enough bits for edge indices
+
+    # edges from 0 start at 0
+    e_index[0] = 0
+    # edges from 1 start at 2
+    e_index[1] = 2
+    # edges from 2 start at 3
+    e_index[2] = 3
+
+    source = sint(0)
+
+    res = dijkstra.dijkstra(source, edges, e_index, OptimalORAM)
+
+    @lib.for_range(res.size)
+    def _(i):
+        lib.print_ln(
+            "from %s to %s at cost %s via vertex %s",
+            source.reveal(),
+            i,
+            res[i][0].reveal(),
+            res[i][1].reveal(),
+        )

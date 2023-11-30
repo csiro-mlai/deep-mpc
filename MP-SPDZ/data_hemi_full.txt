@@ -1,0 +1,19 @@
+Using SGD
+Starting timer 1 at 0 (0 MB, 0 rounds) after 2.29e-05
+Hohoho
+done with epoch 0
+Elapsed time: 4644.01
+Stopped timer 1 at 4628.2 (522262 MB, 21675180 rounds)
+train_acc: 0.101783 (6107/60000)
+test loss: 2.2608
+acc: 0.2087 (2087/10000)
+Starting timer 1 at 4628.2 (522262 MB, 21675180 rounds) after 386.661
+Hohoho
+done with epoch 1
+Elapsed time: 9674.02
+Stopped timer 1 at 9271.56 (1.04452e+06 MB, 43350360 rounds)
+train_acc: 0.231567 (13894/60000)
+test loss: 2.04193
+acc: 0.3477 (3477/10000)
+Starting timer 1 at 9271.56 (1.04452e+06 MB, 43350360 rounds) after 382.904
+Hohoho

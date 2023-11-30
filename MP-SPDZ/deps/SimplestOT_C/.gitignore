@@ -1,0 +1,11 @@
+.idea/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+*.a
+ot_receiver
+ot_sender
+ot_receiver_asm
+ot_sender_asm
