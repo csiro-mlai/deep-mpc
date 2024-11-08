@@ -20,11 +20,11 @@ test -e logs || mkdir logs
 case $protocol in
     sh2) protocol=hemi; PLAYERS=2; run_opt="-b 100 $run_opt" ;;
     sh3) protocol=ring; PLAYERS=3 ;;
-    dm3) protocol=temi; PLAYERS=3; run_opt="-b 100 -lgp 111 $run_opt" ;;
+    dm3) protocol=temi; PLAYERS=3; run_opt="-b 100 -lgp 111 -N 3 $run_opt" ;;
     mal3) protocol=sy-rep-ring; PLAYERS=3 ;;
     mal4) protocol=rep4-ring; PLAYERS=4 ;;
-    sh10) protocol=atlas; PLAYERS=10 ;;
-    dm10) protocol=temi; PLAYERS=10; run_opt="-b 100 -lgp 111 $run_opt" ;;
+    sh10) protocol=atlas; PLAYERS=10 run_opt="-N 10 $run_opt" ;;
+    dm10) protocol=temi; PLAYERS=10; run_opt="-b 100 -lgp 111 -N 10 $run_opt" ;;
     emul) protocol=emulate; compile_args="-K ''" ;;
 esac
 
